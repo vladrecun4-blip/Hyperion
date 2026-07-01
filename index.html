@@ -1,185 +1,238 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hyperion Software Hub | Nedoscript</title>
-    <style>
-        :root {
-            --bg-dark: #09070f;
-            --card-bg: #120e1e;
-            --accent-purple: #7c3aed;
-            --accent-green: #10b981;
-            --text-main: #e9d5ff;
-            --text-muted: #7c7299;
-            --border-clr: #2d2244;
-        }
+import tkinter as tk
+import customtkinter as ctk
+import asyncio
+import threading
+import discord
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100yt;
-        }
+# Константы авторизации (зашиты в скрипт)
+DISCORD_TOKEN = "MTUyMTYxMDk4MzY3ODY3NzEzMw.GKluL2.D-cV_-DUcUcIr4hRIRGGdW2Zcuulpz6hPl2xIQ"
+SERVER_ID = 951426628163100683
 
-        header {
-            text-align: center;
-            padding: 50px 20px 30px 20px;
-        }
+ctk.set_appearance_mode("dark")
 
-        header h1 {
-            font-size: 2.5rem;
-            margin: 0;
-            color: #fff;
-            letter-spacing: 1px;
-        }
+class HyperionAdminSystem(ctk.CTk):
+    def __init__(self):
+        super().__init__()
 
-        header h1 span {
-            color: #db2777;
-            font-family: 'Consolas', monospace;
-        }
+        self.title("Hyperion Admin System | Pro Edition")
+        self.geometry("1280x750")
+        self.minimum_width = 1000
+        self.minimum_height = 600
 
-        header p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            margin-top: 10px;
-        }
+        self.raw_roles_data = []
 
-        .products-container {
-            width: 100%;
-            max-width: 1000px;
-            padding: 20px;
-            box-sizing: border-box;
-        }
+        # Цветовая палитра
+        self.clr_bg = "#09070f"
+        self.clr_card = "#120e1e"
+        self.clr_accent = "#7c3aed"
+        self.clr_pink = "#db2777"
+        self.clr_muted = "#7c7299"
+        self.clr_danger = "#ef4444"
+        self.clr_success = "#10b981"
 
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-        }
+        self.configure(fg_color=self.clr_bg)
 
-        .product-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-clr);
-            border-radius: 12px;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
+        # Сетка главного окна
+        self.grid_columnconfigure(0, weight=0, minsize=300)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
-        .product-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-purple);
-        }
+        # ================= ЛЕВАЯ ПАНЕЛЬ =================
+        self.sidebar = ctk.CTkFrame(self, fg_color=self.clr_card, corner_radius=12, border_width=1, border_color="#2d2244")
+        self.sidebar.grid(row=0, column=0, sticky="nsew", padx=15, pady=15)
+        
+        ctk.CTkLabel(self.sidebar, text="⚡ HYPERION CORE", font=ctk.CTkFont(family="Consolas", size=22, weight="bold"), text_color=self.clr_pink).pack(pady=(25, 2))
+        ctk.CTkLabel(self.sidebar, text="Live Server Editor", font=ctk.CTkFont(size=12), text_color=self.clr_muted).pack(pady=(0, 25))
 
-        .product-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #fff;
-            margin-bottom: 15px;
-        }
+        self.load_btn = ctk.CTkButton(self.sidebar, text="ОБНОВИТЬ МАТРИЦУ", font=ctk.CTkFont(weight="bold"), fg_color=self.clr_accent, hover_color=self.clr_pink, height=40, command=self.start_loading_thread)
+        self.load_btn.pack(fill="x", padx=20, pady=5)
 
-        .product-card h3 {
-            font-size: 1.5rem;
-            margin: 0 0 15px 0;
-            color: #fff;
-        }
+        self.create_btn = ctk.CTkButton(self.sidebar, text="➕ СОЗДАТЬ РОЛЬ", font=ctk.CTkFont(weight="bold"), fg_color=self.clr_success, hover_color="#059669", height=40, command=self.open_create_role_window)
+        self.create_btn.pack(fill="x", padx=20, pady=5)
 
-        .product-card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin: 0 0 30px 0;
-        }
+        # Системный статус
+        self.status_frame = ctk.CTkFrame(self.sidebar, fg_color="#0b0814", height=80, corner_radius=8)
+        self.status_frame.pack(side="bottom", fill="x", padx=15, pady=15)
+        self.status_frame.pack_propagate(False)
 
-        .product-card strong {
-            color: #db2777;
-        }
+        self.status_label = ctk.CTkLabel(self.status_frame, text="Система готова.\nНажмите 'Обновить матрицу'.", font=ctk.CTkFont(size=11), text_color=self.clr_muted, wraplength=240)
+        self.status_label.pack(expand=True, fill="both")
 
-        .btn-action {
-            display: block;
-            text-align: center;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 0.95rem;
-            padding: 12px;
-            border-radius: 8px;
-            transition: background-color 0.2s ease;
-        }
+        # Водяной знак брендинга
+        self.watermark = ctk.CTkLabel(self.sidebar, text="Nedoscript", font=ctk.CTkFont(family="Impact", size=26), text_color="#211936")
+        self.watermark.pack(side="bottom", pady=(10, 0))
 
-        .btn-purple {
-            background-color: var(--accent-purple);
-            color: #fff;
-        }
+        # ================= ПРАВАЯ ПАНЕЛЬ =================
+        self.right_container = ctk.CTkFrame(self, fg_color="transparent")
+        self.right_container.grid(row=0, column=1, sticky="nsew", padx=(0, 15), pady=15)
+        self.right_container.grid_rowconfigure(0, weight=1)
+        self.right_container.grid_columnconfigure(0, weight=1)
 
-        .btn-purple:hover {
-            background-color: #6d28d9;
-        }
+        self.right_panel = ctk.CTkScrollableFrame(self.right_container, fg_color=self.clr_card, border_width=1, border_color="#2d2244", label_text="ИНТЕРАКТИВНОЕ ИЗМЕНЕНИЕ ПРАВ И ЦВЕТА РОЛЕЙ")
+        self.right_panel._label.configure(font=ctk.CTkFont(weight="bold", size=13), text_color="#c084fc")
+        self.right_panel.grid(row=0, column=0, sticky="nsew")
 
-        .btn-green {
-            background-color: var(--accent-green);
-            color: #fff;
-        }
+        self.draw_table_headers()
 
-        .btn-green:hover {
-            background-color: #059669;
-        }
+    def log_status(self, text, is_error=False, is_success=False):
+        color = self.clr_muted
+        if is_error: color = self.clr_danger
+        elif is_success: color = self.clr_success
+        self.status_label.configure(text=text, text_color=color)
 
-        footer {
-            margin-top: auto;
-            padding: 40px 20px;
-            color: #2d2244;
-            font-family: 'Impact', sans-serif;
-            font-size: 1.8rem;
-            letter-spacing: 2px;
-            user-select: none;
-        }
-    </style>
-</head>
-<body>
+    def draw_table_headers(self):
+        headers = ["Название роли", "Цвет роли (HEX)", "Администратор", "Упр. Сервером", "Упр. Ролями", "Бан Участников"]
+        for col_idx, text in enumerate(headers):
+            lbl = ctk.CTkLabel(self.right_panel, text=text, font=ctk.CTkFont(weight="bold", size=12), width=140, text_color="#e9d5ff")
+            lbl.grid(row=0, column=col_idx, padx=8, pady=12)
 
-    <header>
-        <h1>HYPERION <span>SOFTWARE HUB</span></h1>
-        <p>Официальные утилиты для администрирования и мониторинга процессов</p>
-    </header>
+    def start_loading_thread(self):
+        self.load_btn.configure(state="disabled")
+        self.log_status("Загрузка данных из Discord API...")
+        threading.Thread(target=self.async_discord_worker, args=("fetch",), daemon=True).start()
 
-    <div class="products-container">
-        <div class="products-grid">
+    def async_discord_worker(self, action, *args):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        intents = discord.Intents.default()
+        intents.members = True 
+        client = discord.Client(intents=intents)
 
-            <div class="product-card">
-                <div>
-                    <div class="product-badge" style="background: var(--accent-purple);">Доступно</div>
-                    <h3>Hyperion Help Center</h3>
-                    <p>Многофункциональный ассистент и панель мониторинга. Оптимизирует рутинные задачи, собирает внутреннюю статистику и помогает управлять процессами в один клик.</p>
-                </div>
-                <a href="helper_setup.exe" class="btn-action btn-purple" download>Скачать Хелпер (.EXE)</a>
-            </div>
+        @client.event
+        async def on_ready():
+            try:
+                guild = client.get_guild(SERVER_ID)
+                if not guild: guild = await client.fetch_guild(SERVER_ID)
+                
+                if not guild:
+                    self.after(0, self.log_status, "Ошибка: Сервер не найден.", True)
+                    return
 
-            <div class="product-card">
-                <div>
-                    <div class="product-badge" style="background: var(--accent-green);">Доступно</div>
-                    <h3>Hyperion Admin System</h3>
-                    <p>Ультимативная панель управления Discord-сервером от <strong>Nedoscript</strong>. Позволяет создавать роли, менять их цвета (HEX) и переключать права доступа в реальном времени прямо из интерактивной матрицы.</p>
-                </div>
-                <a href="hyperion_admin_setup.exe" class="btn-action btn-green" download>Скачать Админку (.EXE)</a>
-            </div>
+                if action == "fetch":
+                    self.raw_roles_data = []
+                    sorted_roles = sorted(guild.roles, key=lambda r: r.position, reverse=True)
+                    for role in sorted_roles:
+                        if role.is_default(): continue
+                        
+                        perms = {
+                            "administrator": role.permissions.administrator,
+                            "manage_guild": role.permissions.manage_guild,
+                            "manage_roles": role.permissions.manage_roles,
+                            "ban_members": role.permissions.ban_members
+                        }
+                        hex_color = f"#{role.color.value:06x}" if role.color.value != 0 else "#ffffff"
+                        self.raw_roles_data.append((role.id, role.name, hex_color, perms))
+                    
+                    self.after(0, self.render_matrix)
+                    self.after(0, self.log_status, f"Данные обновлены.\nСервер: {guild.name[:20]}", False, True)
 
-        </div>
-    </div>
+                elif action == "toggle_perm":
+                    role_id, perm_key = args
+                    role = guild.get_role(role_id)
+                    if role:
+                        current_perms = role.permissions
+                        setattr(current_perms, perm_key, not getattr(current_perms, perm_key))
+                        await role.edit(permissions=current_perms)
+                        self.after(0, self.start_loading_thread)
 
-    <footer>Nedoscript</footer>
+                elif action == "change_color":
+                    role_id, hex_code = args
+                    role = guild.get_role(role_id)
+                    if role:
+                        clean_hex = hex_code.lstrip("#")
+                        await role.edit(color=discord.Color(int(clean_hex, base=16)))
+                        self.after(0, self.start_loading_thread)
 
-</body>
-</html>
+                elif action == "create_role":
+                    role_name, hex_code = args
+                    clean_hex = hex_code.lstrip("#")
+                    col = discord.Color(int(clean_hex, base=16)) if hex_code else discord.Color.default()
+                    await guild.create_role(name=role_name, color=col)
+                    self.after(0, self.start_loading_thread)
+
+            except discord.Forbidden:
+                self.after(0, self.log_status, "Ошибка: Недостаточно прав у бота!", True)
+            except Exception as e:
+                self.after(0, self.log_status, f"Сбой API: {str(e)[:25]}", True)
+            finally:
+                await client.close()
+                self.after(0, self.load_btn.configure, {"state": "normal"})
+
+        try:
+            loop.run_until_complete(client.start(DISCORD_TOKEN))
+        except Exception:
+            self.after(0, self.log_status, "Ошибка токена!", True)
+            self.after(0, self.load_btn.configure, {"state": "normal"})
+
+    def render_matrix(self):
+        widgets = list(self.right_panel.winfo_children())
+        for w in widgets:
+            grid_info = w.grid_info()
+            if grid_info and int(grid_info.get("row", 0)) > 0:
+                w.destroy()
+
+        for row_idx, (role_id, role_name, hex_color, perms) in enumerate(self.raw_roles_data, start=1):
+            lbl_name = ctk.CTkLabel(self.right_panel, text=role_name, text_color=hex_color, font=ctk.CTkFont(size=12, weight="bold"), anchor="w", width=140)
+            lbl_name.grid(row=row_idx, column=0, padx=8, pady=6, sticky="w")
+
+            color_frame = ctk.CTkFrame(self.right_panel, fg_color="transparent")
+            color_frame.grid(row=row_idx, column=1, padx=8, pady=6)
+            
+            entry_color = ctk.CTkEntry(color_frame, placeholder_text="#HEX", width=70, font=ctk.CTkFont(size=11), height=25)
+            entry_color.insert(0, hex_color)
+            entry_color.pack(side="left", padx=2)
+            
+            btn_save_color = ctk.CTkButton(color_frame, text="✔", width=25, height=25, fg_color="#3b2d54", hover_color=self.clr_pink, command=lambda r=role_id, e=entry_color: self.trigger_color_change(r, e))
+            btn_save_color.pack(side="left", padx=2)
+
+            for col_idx, (perm_key, has_perm) in enumerate(perms.items(), start=2):
+                btn_txt = "✅ РАЗРЕШЕНО" if has_perm else "🛑 ЗАПРЕЩЕНО"
+                btn_color = self.clr_success if has_perm else "#2a223d"
+                hover_color = self.clr_danger if has_perm else self.clr_success
+
+                btn_toggle = ctk.CTkButton(
+                    self.right_panel, text=btn_txt, font=ctk.CTkFont(size=11, weight="bold"),
+                    fg_color=btn_color, hover_color=hover_color, width=135, height=28,
+                    command=lambda r=role_id, p=perm_key: self.trigger_perm_toggle(r, p)
+                )
+                btn_toggle.grid(row=row_idx, column=col_idx, padx=8, pady=6)
+
+    def trigger_perm_toggle(self, role_id, perm_key):
+        self.log_status("Изменение прав...")
+        threading.Thread(target=self.async_discord_worker, args=("toggle_perm", role_id, perm_key), daemon=True).start()
+
+    def trigger_color_change(self, role_id, entry_widget):
+        hex_code = entry_widget.get().strip()
+        if not hex_code.startswith("#") or len(hex_code) != 7:
+            self.log_status("Неверный формат HEX!", True)
+            return
+        self.log_status("Обновление цвета роли...")
+        threading.Thread(target=self.async_discord_worker, args=("change_color", role_id, hex_code), daemon=True).start()
+
+    def open_create_role_window(self):
+        sub_win = ctk.CTkToplevel(self)
+        sub_win.title("Создание новой роли")
+        sub_win.geometry("350x220")
+        sub_win.resizable(False, False)
+        sub_win.grab_set()
+
+        ctk.CTkLabel(sub_win, text="Параметры новой роли", font=ctk.CTkFont(weight="bold", size=14)).pack(pady=15)
+        entry_name = ctk.CTkEntry(sub_win, placeholder_text="Название роли", width=250)
+        entry_name.pack(pady=5)
+        entry_hex = ctk.CTkEntry(sub_win, placeholder_text="Цвет HEX (Например: #ff00ff)", width=250)
+        entry_hex.pack(pady=5)
+
+        def confirm():
+            name = entry_name.get().strip()
+            hex_c = entry_hex.get().strip()
+            if not name: return
+            sub_win.destroy()
+            self.log_status(f"Создание роли '{name}'...")
+            threading.Thread(target=self.async_discord_worker, args=("create_role", name, hex_c), daemon=True).start()
+
+        ctk.CTkButton(sub_win, text="СОЗДАТЬ РОЛЬ", fg_color=self.clr_success, hover_color="#059669", command=confirm).pack(pady=15)
+
+if __name__ == "__main__":
+    app = HyperionAdminSystem()
+    app.mainloop()
