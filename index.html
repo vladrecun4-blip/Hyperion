@@ -3,235 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hyperion Software — Экосистема для Discord</title>
+    <title>Hyperion Software Hub | Nedoscript</title>
     <style>
-        /* Базовые стили */
+        :root {
+            --bg-dark: #09070f;
+            --card-bg: #120e1e;
+            --accent-purple: #7c3aed;
+            --accent-green: #10b981;
+            --text-main: #e9d5ff;
+            --text-muted: #7c7299;
+            --border-clr: #2d2244;
+        }
+
         body {
-            background: radial-gradient(circle at center, #160f33 0%, #05040a 100%);
-            color: #ffffff;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* Шапка сайта (Навигация) */
-        header {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            padding: 20px 8%;
-            background: rgba(11, 8, 22, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(138, 43, 226, 0.2);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            min-height: 100yt;
         }
 
-        .logo {
-            font-size: 1.6rem;
-            font-weight: 800;
-            background: linear-gradient(45deg, #a04ef6, #ff45a4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
+        header {
+            text-align: center;
+            padding: 50px 20px 30px 20px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            color: #fff;
             letter-spacing: 1px;
         }
 
-        nav a {
-            color: #b3a9cf;
-            text-decoration: none;
-            margin-left: 25px;
-            font-weight: 600;
-            transition: color 0.3s;
+        header h1 span {
+            color: #db2777;
+            font-family: 'Consolas', monospace;
         }
 
-        nav a:hover {
-            color: #ff45a4;
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-top: 10px;
         }
 
-        /* Главный приветственный блок */
-        .hero {
-            text-align: center;
-            padding: 80px 20px 40px 20px;
+        .products-container {
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
-        }
-
-        .hero p {
-            color: #9d8ec4;
-            font-size: 1.3rem;
-            max-width: 600px;
-            margin: 0 auto 40px auto;
-        }
-
-        /* Сетка продуктов */
         .products-grid {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
         }
 
-        /* Карточка продукта */
         .product-card {
-            background: rgba(20, 15, 38, 0.65);
-            border: 1px solid rgba(138, 43, 226, 0.3);
-            border-radius: 20px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-clr);
+            border-radius: 12px;
             padding: 30px;
-            text-align: left;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            backdrop-filter: blur(8px);
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
         .product-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(255, 69, 164, 0.6);
-            box-shadow: 0 15px 40px rgba(138, 43, 226, 0.25);
+            transform: translateY(-5px);
+            border-color: var(--accent-purple);
         }
 
         .product-badge {
-            background: rgba(138, 43, 226, 0.2);
-            color: #c084fc;
+            display: inline-block;
             padding: 5px 12px;
-            border-radius: 12px;
-            font-size: 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
             font-weight: bold;
             text-transform: uppercase;
-            align-self: flex-start;
+            letter-spacing: 0.5px;
+            color: #fff;
             margin-bottom: 15px;
-            border: 1px solid rgba(138, 43, 226, 0.4);
-        }
-
-        /* У продуктов, которые еще в разработке, будет другой цвет бейджа */
-        .badge-dev {
-            background: rgba(219, 39, 119, 0.2);
-            color: #f472b6;
-            border-color: rgba(219, 39, 119, 0.4);
         }
 
         .product-card h3 {
-            font-size: 1.6rem;
-            margin: 10px 0;
-            color: #ffffff;
+            font-size: 1.5rem;
+            margin: 0 0 15px 0;
+            color: #fff;
         }
 
         .product-card p {
-            color: #8c82ab;
-            font-size: 1rem;
-            line-height: 1.5;
-            margin-bottom: 25px;
-            flex-grow: 1;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0 0 30px 0;
         }
 
-        /* Кнопка скачать/в разработке */
+        .product-card strong {
+            color: #db2777;
+        }
+
         .btn-action {
             display: block;
             text-align: center;
-            padding: 14px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-radius: 12px;
             text-decoration: none;
-            transition: all 0.3s;
+            font-weight: bold;
+            font-size: 0.95rem;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
         }
 
-        .btn-download {
-            background: linear-gradient(135deg, #7c3aed, #db2777);
-            color: #ffffff;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+        .btn-purple {
+            background-color: var(--accent-purple);
+            color: #fff;
         }
 
-        .btn-download:hover {
-            background: linear-gradient(135deg, #8b5cf6, #ec4899);
-            box-shadow: 0 6px 20px rgba(219, 39, 119, 0.5);
+        .btn-purple:hover {
+            background-color: #6d28d9;
         }
 
-        .btn-disabled {
-            background: #1e1936;
-            color: #524b70;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            cursor: not-allowed;
+        .btn-green {
+            background-color: var(--accent-green);
+            color: #fff;
+        }
+
+        .btn-green:hover {
+            background-color: #059669;
         }
 
         footer {
-            text-align: center;
+            margin-top: auto;
             padding: 40px 20px;
-            color: #4a4366;
-            font-size: 0.9rem;
-            margin-top: 60px;
-            border-top: 1px solid rgba(255, 255, 255, 0.02);
+            color: #2d2244;
+            font-family: 'Impact', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            user-select: none;
         }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo">Hyperion Project</div>
-    <nav>
-        <a href="#products">Продукты</a>
-        <a href="https://github.com/vladrecun4-blip" target="_blank">GitHub</a>
-    </nav>
-</header>
+    <header>
+        <h1>HYPERION <span>SOFTWARE HUB</span></h1>
+        <p>Официальные утилиты для администрирования и мониторинга процессов</p>
+    </header>
 
-<section class="hero">
-    <h1>Экосистема Hyperion</h1>
-    <p>Профессиональный софт для автоматизации, оформления и контроля Discord-серверов.</p>
-</section>
+    <div class="products-container">
+        <div class="products-grid">
 
-<main class="products-grid" id="products">
+            <div class="product-card">
+                <div>
+                    <div class="product-badge" style="background: var(--accent-purple);">Доступно</div>
+                    <h3>Hyperion Help Center</h3>
+                    <p>Многофункциональный ассистент и панель мониторинга. Оптимизирует рутинные задачи, собирает внутреннюю статистику и помогает управлять процессами в один клик.</p>
+                </div>
+                <a href="helper_setup.exe" class="btn-action btn-purple" download>Скачать Хелпер (.EXE)</a>
+            </div>
 
-    <!-- Твой первый готовый продукт -->
-    <div class="product-card">
-        <div>
-            <div class="product-badge">Доступно</div>
-            <h3>Hyperion Dashboard</h3>
-            <p>Удобный графический интерфейс управления. Быстрый контроль процессов, оптимизированное потребление ресурсов и кастомный неоновый стиль.</p>
+            <div class="product-card">
+                <div>
+                    <div class="product-badge" style="background: var(--accent-green);">Доступно</div>
+                    <h3>Hyperion Admin System</h3>
+                    <p>Ультимативная панель управления Discord-сервером от <strong>Nedoscript</strong>. Позволяет создавать роли, менять их цвета (HEX) и переключать права доступа в реальном времени прямо из интерактивной матрицы.</p>
+                </div>
+                <a href="hyperion_admin_setup.exe" class="btn-action btn-green" download>Скачать Админку (.EXE)</a>
+            </div>
+
         </div>
-        <!-- Ссылка ведет на твой собранный установщик в репозитории -->
-        <a href="mysetup.exe" class="btn-action btn-download" download>Скачать .EXE</a>
     </div>
 
-    <!-- Будущий продукт №1 -->
-    <div class="product-card">
-        <div>
-            <div class="product-badge badge-dev">В разработке</div>
-            <h3>Server Layout Designer</h3>
-            <p>Визуальный конструктор структуры каналов. Создавайте красивое оформление категорий, используйте готовые шрифтовые пресеты и эмодзи-шаблоны в один клик через Discord API.</p>
-        </div>
-        <a class="btn-action btn-disabled">Скоро релиз</a>
-    </div>
-
-    <!-- Будущий продукт №2 -->
-    <div class="product-card">
-        <div>
-            <div class="product-badge badge-dev">В разработке</div>
-            <h3>Role Matrix Visualizer</h3>
-            <p>Интерактивная таблица для настройки и проверки прав доступов. Программа автоматически находит уязвимости в правах ролей и подсвечивает конфликты безопасности.</p>
-        </div>
-        <a class="btn-action btn-disabled">Скоро релиз</a>
-    </div>
-
-</main>
-
-<footer>
-    &copy; 2026 Hyperion Project. Все права защищены.<br>
-    Разработано для администраторов и модераторов Discord.
-</footer>
+    <footer>Nedoscript</footer>
 
 </body>
 </html>
